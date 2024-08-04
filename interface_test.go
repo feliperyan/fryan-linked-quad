@@ -243,15 +243,8 @@ func TestInsertFirstElement(t *testing.T) {
 
 func TestInsertTwoElements(t *testing.T) {
 
-	tree := NewQuadRoot(16, 16, 3, 3, 0)
-	a := Element{
-		id:  0,
-		Box: Box{X: 5, Y: 9, Width: 1, Height: 1},
-	}
-	b := Element{
-		id:  0,
-		Box: Box{X: 5, Y: 9, Width: 1, Height: 1},
-	}
+	//tree := NewQuadRoot(16, 16, 3, 3, 0)
+
 	//
 	//err := tree.Insert(a)
 	//if err != nil {
@@ -269,19 +262,38 @@ func TestInsertTwoElements(t *testing.T) {
 	//	t.Errorf("Wanted %v , got %v", want, got)
 	//}
 
-	// Same tree but now diff element IDs
-	tree = NewQuadRoot(16, 16, 3, 3, 0)
-	b.id = 99
+	// Won't cause divide so single Quad
+	a := Element{
+		id:  123,
+		Box: Box{X: 5, Y: 1, Width: 1, Height: 1},
+	}
+	b := Element{
+		id:  789,
+		Box: Box{X: 5, Y: 1, Width: 1, Height: 1},
+	}
+	c := Element{
+		id:  999,
+		Box: Box{X: 13, Y: 1, Width: 1, Height: 1},
+	}
+
+	tree := NewQuadRoot(16, 16, 3, 3, 0)
+
 	err := tree.Insert(a)
 	if err != nil {
 		t.Errorf("error: %v", err)
 	}
+
 	err = tree.Insert(b)
 	if err != nil {
 		t.Errorf("error: %v", err)
 	}
 
-	want := 2
+	err = tree.Insert(c)
+	if err != nil {
+		t.Errorf("error: %v", err)
+	}
+
+	want := 3
 	//got = len(tree.Elements.Elements)
 	got := len(tree.ElementManager.Elements)
 	if want != got {
@@ -316,6 +328,76 @@ func TestInsertTwoElementsIntoChildNode(t *testing.T) {
 	want := 2
 	//got := len(tree.Elements.Elements)
 	got := len(tree.ElementManager.Elements)
+	if want != got {
+		t.Errorf("Wanted %v , got %v", want, got)
+	}
+
+}
+
+func TestInsertSeparateElementsIntoChildNode(t *testing.T) {
+
+	// TL TR BL* BR -> BLTL BLTR BLBL BLBR
+	tree := TreeOne()
+
+	// TL
+	a := Element{
+		id:  0,
+		Box: Box{X: 1, Y: 1, Width: 1, Height: 1},
+	}
+
+	// TR
+	b := Element{
+		id:  1,
+		Box: Box{X: 10, Y: 2, Width: 1, Height: 1},
+	}
+
+	// TL
+	c := Element{
+		id:  2,
+		Box: Box{X: 2, Y: 2, Width: 1, Height: 1},
+	}
+
+	err := tree.Insert(a)
+	if err != nil {
+		t.Errorf("error: %v", err)
+	}
+
+	err = tree.Insert(b)
+	if err != nil {
+		t.Errorf("error: %v", err)
+	}
+
+	err = tree.Insert(c)
+	if err != nil {
+		t.Errorf("error: %v", err)
+	}
+
+	// Doest TL have 2 elements?
+	want := 2
+	got := int(tree.Nodes[1].NumberElements)
+	if want != got {
+		t.Errorf("Wanted %v , got %v", want, got)
+	}
+
+	// Does the TL node point to Element id=2 (element c)?
+	want = 2
+	got = int(tree.ElementManager.Elements[tree.Nodes[1].FirstElementHolder].id)
+	if want != got {
+		t.Errorf("Wanted %v , got %v", want, got)
+	}
+
+	// Does the C point to A?
+	want = 0
+	temp := tree.ElementManager.Elements[tree.Nodes[1].FirstElementHolder]
+	got = int(temp.Next)
+	if want != got {
+		t.Errorf("Wanted %v , got %v", want, got)
+	}
+
+	// Does the A point to C?
+	want = 2
+	temp = tree.ElementManager.Elements[temp.Next]
+	got = int(temp.Previous)
 	if want != got {
 		t.Errorf("Wanted %v , got %v", want, got)
 	}
@@ -437,7 +519,7 @@ func TestRemoveFromSingleNode(t *testing.T) {
 	// TL TR BL* BR -> BLTL BLTR BLBL BLBR
 	tree := TreeOne()
 
-	// TL and TR
+	// TL
 	a := Element{
 		id:  0,
 		Box: Box{X: 1, Y: 1, Width: 1, Height: 1},
@@ -456,6 +538,51 @@ func TestRemoveFromSingleNode(t *testing.T) {
 	if len(tree.ElementManager.Elements) != 0 {
 		t.Errorf("Expected lengh 0, got %v", len(tree.ElementManager.Elements))
 	}
+
+	// Several items
+	tree = TreeOne()
+
+	err = tree.Insert(a)
+	if err != nil {
+		t.Errorf("error: %v", err)
+	}
+
+	a.id = 1
+	err = tree.Insert(a)
+	if err != nil {
+		t.Errorf("error: %v", err)
+	}
+
+	a.id = 2
+	err = tree.Insert(a)
+	if err != nil {
+		t.Errorf("error: %v", err)
+	}
+
+	a.id = 1
+	err = tree.Remove(a)
+	if err != nil {
+		t.Errorf("error: %v", err)
+	}
+
+	want := 2
+	got := len(tree.ElementManager.Elements)
+	if want != got {
+		t.Errorf("Wanted %v , got %v", want, got)
+	}
+
+	a.id = 0
+	err = tree.Remove(a)
+	if err != nil {
+		t.Errorf("error: %v", err)
+	}
+
+	want = 1
+	got = len(tree.ElementManager.Elements)
+	if want != got {
+		t.Errorf("Wanted %v , got %v", want, got)
+	}
+
 }
 
 func TestRemoveFromSingleNode2(t *testing.T) {

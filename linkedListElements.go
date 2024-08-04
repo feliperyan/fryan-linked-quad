@@ -14,6 +14,7 @@ func (em *ElementManager) Add(element Element, firstIndex int32) (int32, error) 
 
 	em.Elements = append(em.Elements, DoublyLinkedListElement{element, -1, firstIndex})
 
+	// If there's another element already, make sure its previous points to this element being inserted now
 	if firstIndex >= 0 {
 		em.Elements[firstIndex].Previous = int32(len(em.Elements) - 1)
 	}
@@ -28,8 +29,8 @@ func (em *ElementManager) Remove(element Element, firstIndex int32) (int32, int3
 
 	index := firstIndex
 
-	newHead := int32(-1)
-	fixHead := int32(-1)
+	currentNodeHead := int32(-1)
+	someOtherNodesHead := int32(-1)
 
 	for index != -1 {
 
@@ -37,7 +38,9 @@ func (em *ElementManager) Remove(element Element, firstIndex int32) (int32, int3
 			thisPrev := em.Elements[index].Previous
 			thisNext := em.Elements[index].Next
 
-			// Link previous with Next therefore removing it from Linked List
+			// Remove element from the linked list be re-assigning the
+			// next and previous elements' pointers so they "skip" the removed
+			// element
 			if thisPrev >= 0 {
 				em.Elements[thisPrev].Next = thisNext
 			}
@@ -46,23 +49,40 @@ func (em *ElementManager) Remove(element Element, firstIndex int32) (int32, int3
 
 				// Just removed the head Element so return the new index
 				if thisPrev == -1 {
-					newHead = thisNext
+					currentNodeHead = thisNext
 				}
 			}
 
-			lastItem := em.Elements[len(em.Elements)-1]
-			if lastItem.Previous == -1 { // reduce
-				em.Elements[index] = lastItem
+			// Slice clean up, overwrite the deleted element with the last element in the slice
+			// then reduce slice length by 1. This is a O(1) operation for deleting items from a slice
 
-				if lastItem.Next >= 0 {
-					em.Elements[lastItem.Next].Previous = index
-				}
+			// Get last element
+			lastElement := em.Elements[len(em.Elements)-1]
 
-				fixHead = index
+			// Overwrite removed Element
+			em.Elements[index] = lastElement
+
+			// Whoever was pointing to the index
+			// of the lastElement needs to be corrected.
+			if lastElement.Previous >= 0 {
+				em.Elements[lastElement.Previous].Next = index
+
+			} else { // Previous = -1 meaning this was the Element referenced by a Node
+				someOtherNodesHead = index
+			}
+
+			if lastElement.Next >= 0 {
+				em.Elements[lastElement.Next].Previous = index
 			}
 
 			// Reduce length of slice
 			em.Elements = em.Elements[:len(em.Elements)-1]
+
+			// Special case when the element being remove is the only one
+			// in the slice
+			if someOtherNodesHead == 0 && len(em.Elements) == 0 {
+				someOtherNodesHead = -1
+			}
 
 			break
 		}
@@ -70,5 +90,5 @@ func (em *ElementManager) Remove(element Element, firstIndex int32) (int32, int3
 		index = em.Elements[index].Next
 	}
 
-	return newHead, fixHead, nil
+	return currentNodeHead, someOtherNodesHead, nil
 }
