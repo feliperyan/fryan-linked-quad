@@ -267,7 +267,7 @@ func combineNodes(q *QuadRoot, rootPos int) error {
 
 	firstQuadrantOfFour := root.NextQuadrant
 
-	// TODO: EFFICIENCY = this is grossly inneficient. Either figure out
+	// TODO: EFFICIENCY = this is grossly inefficient. Either figure out
 	// the best solution is to have a data structure that marks items as deleted
 	// then overrides the deleted items. That way I dont shift items around.
 	q.Nodes = append(q.Nodes[:firstQuadrantOfFour], q.Nodes[firstQuadrantOfFour+4:]...)

@@ -31,7 +31,14 @@ By point to the last element, it's 2 ops: update node reference and ensure `newE
 old node reference.
 ps: We could of course hold *2 references*, one the 1st element and one to the last... 
 
-Diagrams:
+## TODO:
+
+1. Divide
+2. Combine
+
+## Diagrams:
+
+Arrows pointing left are "nextElement" and pointing right, "prevElement".
 
 ### Adding elements
 ![Adding](documentation/add.png)
